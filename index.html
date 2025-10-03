@@ -1,13 +1,81 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>My PWA Lázaro</title>
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#7c3aed" />
+    <meta name="description" content="Aplicación web progresiva creada con Vite + React." />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+
+    <!-- iOS / Apple -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <!-- App Shell: estilos mínimos para carga rápida -->
+    <style>
+      :root { color-scheme: light dark; }
+      html, body, #root { height: 100%; }
+      body {
+        margin: 0;
+        background: #121212;
+        color: #e5e7eb;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      }
+      .splash {
+        display: grid;
+        place-items: center;
+        height: 100%;
+        background: radial-gradient(1200px 600px at 50% -20%, #7c3aed33, transparent), #121212;
+      }
+      .splash h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        opacity: .9;
+      }
+      .hide { display: none; }
+    </style>
   </head>
+
   <body>
-    <div id="root"></div>
+    <div id="splash" class="splash">
+      <h1>My PWA Lázaro</h1>
+    </div>
+
+    <div id="root" class="hide"></div>
+
+    <script type="module">
+      // Mostrar el root y ocultar el splash cuando cargue el bundle
+      window.addEventListener('DOMContentLoaded', () => {
+        const splash = document.getElementById('splash');
+        const root = document.getElementById('root');
+        if (splash && root) {
+          root.classList.remove('hide');
+          splash.classList.add('hide');
+        }
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Registro de Service Worker -->
+    <script type="module">
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .catch((err) => console.error('SW registration failed:', err));
+        });
+      }
+    </script>
   </body>
 </html>
