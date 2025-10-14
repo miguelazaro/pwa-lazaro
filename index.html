@@ -9,18 +9,18 @@
     <title>My PWA Lázaro</title>
 
     <!-- Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#7c3aed" />
     <meta name="description" content="Aplicación web progresiva creada con Vite + React." />
 
     <!-- Favicons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
 
     <!-- iOS / Apple -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
     <!-- App Shell: estilos mínimos para carga rápida -->
     <style>
@@ -54,28 +54,7 @@
 
     <div id="root" class="hide"></div>
 
-    <script type="module">
-      // Mostrar el root y ocultar el splash cuando cargue el bundle
-      window.addEventListener('DOMContentLoaded', () => {
-        const splash = document.getElementById('splash');
-        const root = document.getElementById('root');
-        if (splash && root) {
-          root.classList.remove('hide');
-          splash.classList.add('hide');
-        }
-      });
-    </script>
-    <script type="module" src="/src/main.tsx"></script>
-
-    <!-- Registro de Service Worker -->
-    <script type="module">
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/sw.js')
-            .catch((err) => console.error('SW registration failed:', err));
-        });
-      }
-    </script>
+    <!-- Tu app montará aquí; main.tsx debe mostrar #root y ocultar #splash -->
+    <script type="module" src="src/main.tsx"></script>
   </body>
 </html>
