@@ -1,0 +1,36 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: grid;
+    place-items: center;
+    background: #0b0b0c;
+    color: #e5e7eb;
+    font-family: system-ui, Segoe UI, Roboto;
+}
+
+.card {
+    max-width: 26rem;
+    padding: 1.25rem;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    background: #111114;
+}
+
+h1 {
+    margin: .25rem 0;
+    font-size: 1.25rem;
+}
+
+p {
+    opacity: .85;
+    line-height: 1.5;
+}
+
+a {
+    color: #a78bfa;
+    text-decoration: none;
+}
