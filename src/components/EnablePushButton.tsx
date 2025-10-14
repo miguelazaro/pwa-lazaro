@@ -1,9 +1,7 @@
-import React from "react";
-
 export default function EnablePushButton() {
     async function onClick() {
         try {
-            const m = await import("../push"); 
+            const m = await import("../push"); // ruta correcta desde /components
             await m.enablePush();
         } catch (e) {
             console.warn("[PUSH] No se pudo activar:", e);

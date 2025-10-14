@@ -1,4 +1,3 @@
-import React from "react";
 import { useOnline } from "../hooks/useOnline";
 
 export default function OfflineBanner() {
@@ -7,6 +6,8 @@ export default function OfflineBanner() {
 
     return (
         <div
+            role="status"
+            aria-live="polite"
             style={{
                 background: "#b45309",
                 color: "white",
@@ -14,8 +15,6 @@ export default function OfflineBanner() {
                 textAlign: "center",
                 fontSize: 14,
             }}
-            role="status"
-            aria-live="polite"
         >
             Estás sin conexión. Tus datos se guardarán localmente y se mostrarán al recargar.
         </div>
