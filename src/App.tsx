@@ -15,7 +15,7 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
 
-  // ---- Push support----
+  // ---- Push support ----
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] =
     useState<NotificationPermission>(Notification.permission);
@@ -28,6 +28,7 @@ export default function App() {
       "Notification" in window;
     setPushSupported(supported);
 
+    // Prompt A2HS diferido
     const onBip = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -35,6 +36,7 @@ export default function App() {
     };
     window.addEventListener("beforeinstallprompt", onBip);
 
+    // Observar permiso de notificaciones
     const stop = watchNotificationPermission((perm) => {
       setPushPermission(perm);
       console.log("[PUSH] Permiso cambió a:", perm);
@@ -42,7 +44,7 @@ export default function App() {
 
     return () => {
       window.removeEventListener("beforeinstallprompt", onBip);
-      void stop; 
+      void stop;
     };
   }, []);
 
@@ -65,8 +67,7 @@ export default function App() {
   };
 
   // Mostrar botón si hay soporte y AÚN no está concedido el permiso.
-  const shouldShowPushCta =
-    pushSupported && pushPermission !== "granted";
+  const shouldShowPushCta = pushSupported && pushPermission !== "granted";
 
   const openSiteNotificationsSettings = () => {
     window.open(
@@ -83,15 +84,12 @@ export default function App() {
           <span>My PWA Lázaro</span>
         </div>
 
-        <div className="actions" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="actions">
           {/* Estado visual del permiso */}
           {pushSupported && (
             <span
+              className="badge"
               style={{
-                fontSize: 12,
-                padding: "4px 8px",
-                borderRadius: 999,
-                border: "1px solid #333",
                 background:
                   pushPermission === "granted"
                     ? "#064e3b"
@@ -115,28 +113,6 @@ export default function App() {
             </span>
           )}
 
-          {/* CTA para activar notificaciones */}
-          {shouldShowPushCta && (
-            <button
-              className="btn"
-              style={{
-                ...btnSuccess,
-                opacity: pushPermission === "denied" ? 0.5 : 1,
-                cursor: pushPermission === "denied" ? "not-allowed" : "pointer",
-              }}
-              onClick={pushPermission === "denied" ? openSiteNotificationsSettings : onEnablePush}
-              title={
-                pushPermission === "denied"
-                  ? "Permiso bloqueado. Haz clic para abrir los ajustes del sitio y permitir notificaciones."
-                  : "Activar notificaciones push"
-              }
-            >
-              {pushPermission === "denied"
-                ? "Permitir en ajustes del sitio"
-                : "Activar notificaciones"}
-            </button>
-          )}
-
           {/* Botón de instalar A2HS */}
           {canInstall && (
             <button className="btn" onClick={onInstall}>
@@ -145,6 +121,33 @@ export default function App() {
           )}
         </div>
       </header>
+
+      {/* 🔽 CTA de notificaciones MOVIDO debajo del header */}
+      {shouldShowPushCta && (
+        <div className="push-cta">
+          <button
+            className="btn btn-success"
+            style={{
+              opacity: pushPermission === "denied" ? 0.5 : 1,
+              cursor: pushPermission === "denied" ? "not-allowed" : "pointer",
+            }}
+            onClick={
+              pushPermission === "denied"
+                ? openSiteNotificationsSettings
+                : onEnablePush
+            }
+            title={
+              pushPermission === "denied"
+                ? "Permiso bloqueado. Abre los ajustes del sitio para permitir notificaciones."
+                : "Activar notificaciones push"
+            }
+          >
+            {pushPermission === "denied"
+              ? "Permitir en ajustes del sitio"
+              : "Activar notificaciones"}
+          </button>
+        </div>
+      )}
 
       <main className="container">
         <Entries />
@@ -157,12 +160,3 @@ export default function App() {
   );
 }
 
-const btnSuccess: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: 10,
-  border: "none",
-  background: "#22c55e",
-  color: "#0b0b0c",
-  fontWeight: 700,
-  cursor: "pointer",
-};
