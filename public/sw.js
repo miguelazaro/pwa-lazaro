@@ -10,7 +10,7 @@ const IMAGE_CACHE   = "images-v1";
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/offline.html",
+  "./offline.html",
   "/offline.css",
   "/manifest.json",
   "/icons/favicon-16x16.png",
