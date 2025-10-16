@@ -57,19 +57,40 @@ Implementadas en **`sw.js`** con Workbox:
 ## 🧠 Estructura de carpetas
 ```
 src/
- ├── assets/
- ├── components/
- │   ├── Entries.tsx
- │   ├── OfflineBanner.tsx
- │   └── EnablePushButton.tsx
- ├── hooks/
- │   └── useOnline.ts
- ├── lib/
- │   └── idb.ts
- ├── push.ts
- ├── register-sw.ts
- ├── App.tsx
- └── service-worker.js (sw.js)
+│
+├── components/                 # Componentes de React (interfaz principal)
+│   ├── Entries.tsx             # Formulario y lista de tareas offline con sincronización
+│   ├── OfflineBanner.tsx       # Indicador visual de estado de conexión
+│   ├── EnablePushButton.tsx    # Botón para habilitar notificaciones Push
+│
+├── hooks/                      # Custom Hooks de React
+│   └── useOnline.ts            # Detecta el estado de conexión (online / offline)
+│
+├── lib/                        # Lógica de negocio y utilidades principales
+│   ├── idb.ts                  # Control de IndexedDB (CRUD de entradas offline)
+│   ├── push.ts                 # Suscripción y envío de notificaciones Web Push
+│   ├── register-sw.ts          # Registro del Service Worker
+│   ├── watchPermission.ts      # Verifica permisos de notificación
+│
+├── App.tsx                     # Componente raíz de la PWA
+├── App.css                     # Estilos globales y responsivos
+├── index.css                   # Tipografía y colores base
+├── main.tsx                    # Punto de entrada principal de React
+│
+└── types/                      # Definiciones TypeScript y tipos globales
+    ├── types.d.ts              # Interfaces para entradas y estructuras de datos
+    ├── vite-env.d.ts           # Tipado del entorno de Vite
+    └── env.d.ts                # Tipado de variables de entorno (.env)
+public/
+│
+├── service-worker.js           # Lógica offline, estrategias de cache y sync
+├── offline.html                # Página offline personalizada (fallback)
+├── manifest.json               # Configuración del manifiesto PWA
+└── icons/                      # Íconos multi-resolución (192x192, 512x512, etc.)
+api/
+│
+└── entries.ts                  # Endpoint /api/entries (recibe datos sincronizados)
+
 ```
 
 ---
