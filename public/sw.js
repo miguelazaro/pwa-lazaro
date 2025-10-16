@@ -46,15 +46,17 @@ function isApiRequest(url) {
  * ========================= */
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => cache.addAll([
-        ...APP_SHELL,
-        '/offline.html', 
-      ]))
-      .then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(STATIC_CACHE);
+      try {
+        await cache.addAll(APP_SHELL);
+        console.log("[SW] Archivos precacheados correctamente.");
+      } catch (err) {
+        console.warn("[SW] Error al precachear:", err);
+      }
+    })().then(() => self.skipWaiting())
   );
 });
-
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
@@ -111,15 +113,23 @@ self.addEventListener("fetch", (event) => {
 /* ===== Helpers de estrategias ===== */
 async function networkFirstForPages(request) {
   try {
-    const fresh = await fetch(request);
-    if (fresh && fresh.ok) return fresh;
-    throw new Error('Network response not ok');
-  } catch {
-    console.warn('[SW] No hay conexión, mostrando offline.html');
-    const cached = await caches.match(request);
-    return cached || (await caches.match('/offline.html'));
+    const response = await fetch(request);
+    if (response && response.ok) return response;
+    throw new Error("Respuesta de red no válida");
+  } catch (err) {
+    console.warn("[SW] No hay conexión, mostrando offline.html");
+    const cache = await caches.open(STATIC_CACHE);
+    const cached = await cache.match(request);
+    const offline = await cache.match("/offline.html");
+
+    if (cached) return cached;
+    if (offline) return offline;
+    return new Response("Estás sin conexión y no hay contenido cacheado.", {
+      headers: { "Content-Type": "text/plain" },
+    });
   }
 }
+
 
 
 async function cacheFirst(request, cacheName) {
