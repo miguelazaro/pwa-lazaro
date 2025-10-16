@@ -47,10 +47,14 @@ function isApiRequest(url) {
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll([
+        ...APP_SHELL,
+        '/offline.html', 
+      ]))
       .then(() => self.skipWaiting())
   );
 });
+
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
@@ -108,12 +112,15 @@ self.addEventListener("fetch", (event) => {
 async function networkFirstForPages(request) {
   try {
     const fresh = await fetch(request);
-    return fresh;
+    if (fresh && fresh.ok) return fresh;
+    throw new Error('Network response not ok');
   } catch {
+    console.warn('[SW] No hay conexión, mostrando offline.html');
     const cached = await caches.match(request);
-    return cached || (await caches.match("/offline.html"));
+    return cached || (await caches.match('/offline.html'));
   }
 }
+
 
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
