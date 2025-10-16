@@ -27,14 +27,7 @@ const APP_SHELL = [
  *  Ambiente / Endpoints
  * ========================= */
 
-const IS_LOCAL =
-  self.location.hostname === "localhost" ||
-  self.location.hostname === "127.0.0.1" ||
-  self.location.hostname === "::1";
-
-// BASE de API: local usa el backend en :3000; prod usa el dominio (Vercel)
-const API_BASE = IS_LOCAL ? "http://localhost:3000" : self.location.origin;
-const ENTRIES_ENDPOINT = `${API_BASE}/api/entries`;
+const ENTRIES_ENDPOINT = "/api/entries";
 
 /* =========================
  *  Utils
@@ -42,16 +35,7 @@ const ENTRIES_ENDPOINT = `${API_BASE}/api/entries`;
 function isApiRequest(url) {
   try {
     const u = new URL(url);
-
-    if (
-      (u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname === "::1") &&
-      u.port === "3000" &&
-      u.pathname.startsWith("/api/")
-    ) return true;
-
-    if (u.origin === self.location.origin && u.pathname.startsWith("/api/")) return true;
-
-    return false;
+    return u.pathname.startsWith("/api/");
   } catch {
     return false;
   }
@@ -98,9 +82,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // JSON internos
-  if (url.origin === location.origin && url.pathname.endsWith(".json")) {
-    event.respondWith(staleWhileRevalidate(req, DYNAMIC_CACHE));
+  // Llamadas a API
+  if (isApiRequest(req.url)) {
+    event.respondWith(networkFirst(req, DYNAMIC_CACHE));
     return;
   }
 
@@ -113,12 +97,6 @@ self.addEventListener("fetch", (event) => {
   // Imágenes
   if (req.destination === "image") {
     event.respondWith(staleWhileRevalidate(req, IMAGE_CACHE));
-    return;
-  }
-
-  // Llamadas a API (local o /api del mismo dominio)
-  if (isApiRequest(req.url)) {
-    event.respondWith(networkFirst(req, DYNAMIC_CACHE));
     return;
   }
 
@@ -230,36 +208,70 @@ async function deleteMany(ids) {
 }
 
 /* =========================
- *  Background Sync
+ *  Background Sync + Sincronización Manual
  * ========================= */
 self.addEventListener("sync", (event) => {
   if (event.tag === "sync-entries") {
+    console.log("[SW] Background Sync activado");
     event.waitUntil(syncEntries());
+  }
+});
+
+self.addEventListener("message", async (event) => {
+  if (event.data === "manual-sync") {
+    console.log("[SW] Sincronización manual solicitada");
+    await syncEntries();
+    event.ports[0]?.postMessage("sync-completed");
   }
 });
 
 async function syncEntries() {
   try {
     const pending = await getPending();
+    console.log(`[SW] Sincronizando ${pending.length} entradas pendientes`);
+    
     if (!pending.length) {
       notifyPages("sync-done");
       return;
     }
 
-    // Usa serverless en prod y backend local en dev
+    const results = [];
+    
     for (const entry of pending) {
-      const res = await fetch(ENTRIES_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(entry),
-      });
-      if (!res.ok) throw new Error("Error al enviar: " + res.status);
+      try {
+        const res = await fetch(ENTRIES_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entry),
+        });
+        
+        if (res.ok) {
+          results.push({ id: entry.id, success: true });
+        } else {
+          console.warn(`[SW] Error en sync: ${res.status} para entrada ${entry.id}`);
+          results.push({ id: entry.id, success: false });
+        }
+      } catch (err) {
+        console.warn(`[SW] Error de red para entrada ${entry.id}:`, err);
+        results.push({ id: entry.id, success: false });
+      }
     }
 
-    await deleteMany(pending.map((e) => e.id));
-    notifyPages("sync-done");
+    const successfulIds = results.filter(r => r.success).map(r => r.id);
+    if (successfulIds.length > 0) {
+      await deleteMany(successfulIds);
+      console.log(`[SW] ${successfulIds.length} entradas sincronizadas y eliminadas`);
+    }
+
+    if (successfulIds.length === pending.length) {
+      notifyPages("sync-done");
+    } else {
+      notifyPages("sync-partial");
+    }
+    
   } catch (err) {
-    console.warn("[SW] Falló la sync, reintentará luego:", err);
+    console.error("[SW] Error crítico en syncEntries:", err);
+    notifyPages("sync-error");
   }
 }
 
